@@ -2,7 +2,7 @@
 layout: post
 title: First Post!
 date: 2024-06-09
-categories: ["Unreal Engine 5.4", "DevLog"]
+categories: ["Unreal Engine", "DevLog"]
 ---
 
 This is the first post of my DevLog. The idea here is to document the leaning process and my thoughts on projects I'm working on.
