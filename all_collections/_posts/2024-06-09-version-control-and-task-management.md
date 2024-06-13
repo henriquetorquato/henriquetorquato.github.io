@@ -1,7 +1,8 @@
 ---
 layout: post
 title: 'Unreal Stack: Version Control and Remote Team Collaboration tools'
-date: 2024-06-09
+created-at: 2024-06-09
+#modified-at: 2024-06-13
 categories: ["Unreal Engine", "Perforce", "Helix Core", "Jira"]
 ---
 ## TL;DR

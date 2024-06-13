@@ -73,9 +73,12 @@ main {
   margin-bottom: 0.6rem;
   line-height: 140%;
 }
+.article-data {
+  display: block;
+  margin-bottom: 1rem;
+}
 
 .article .date {
-  display: block;
   font-size: 0.8rem;
 }
 .categories {
