@@ -29,4 +29,16 @@ I'm not saying that it is a bad tool overall, there is probably a reason why it 
 
 But I am looking for something easy to set up and use, so I can focus on what matters.
 
+### A side note on implicit costs
+
+
 ## Solution
+Because of all these problems that kept showing up, we decided to go with the good old Git. We will be using the Git with LFS [so we can avoid the repository turning into a 200 GB mess](https://stackoverflow.com/a/35578715). 
+
+We are using a Free tier GitHub organization, meaning that there is no set up time or upfront work.
+
+There are some costs associated using LFS, but they are minimum in comparison to self-hosting 2 VM's or paying for the [SaaS version of Core and Swarm](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/perforce-hcc.perforce-helix-core-cloud?ocid=web-pricing&tab=PlansAndPrice).
+
+The costs are basically data packs for storage on GitHub. It goes for 5 dolars for every 50 GB you need to use. It will probably take some time untill we get over those first 50 GB, so we are pretty confortable with 5 dolars/month for now.
+
+![GitHub LFS Data Plan Billing](/docs/assets/2024-06/1.png)
