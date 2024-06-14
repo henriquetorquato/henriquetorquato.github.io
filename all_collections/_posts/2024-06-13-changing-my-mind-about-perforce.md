@@ -3,7 +3,7 @@ layout: post
 title: 'Unreal Stack: Changing my mind about Perforce'
 created-at: 2024-06-13
 modified-at: 
-categories: ["Unreal Engine", "Perforce", "Helix Core", "Git LFS"]
+categories: ["Unreal Engine", "Version Control"]
 ---
 ## TL;DR
 Stopped using Perforce, started using Git LFS on GitHub
