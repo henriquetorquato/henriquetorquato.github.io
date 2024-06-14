@@ -1,4 +1,5 @@
-title: DevLog
+title: The Boring DevLog
+description: Not about digging holes
 markdown: kramdown
 
 # for atom feed
@@ -21,5 +22,6 @@ defaults:
       path: "_posts"
     values:
       layout: "post"
-      permalink: /posts/:title/
+      permalink: /post/:year/:month/:day/:title/
+
 exclude: ["sitemap.xml", "feed.xml", "LICENSE", "README.md"]

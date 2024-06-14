@@ -34,6 +34,9 @@ header .site-title {
   line-height: 110%;
   color: var(--white-1);
 }
+header .site-description {
+  font-style: italic;
+}
 main {
   margin: 0 auto;
   max-width: 650px;
