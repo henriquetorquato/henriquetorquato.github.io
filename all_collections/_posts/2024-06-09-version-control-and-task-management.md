@@ -2,7 +2,7 @@
 layout: post
 title: 'Unreal Stack: Version Control and Remote Team Collaboration tools'
 created-at: 2024-06-09
-#modified-at: 2024-06-13
+modified-at: 2024-06-13
 categories: ["Unreal Engine", "Perforce", "Helix Core", "Jira"]
 ---
 ## TL;DR
@@ -32,6 +32,8 @@ Plastic SCM was not always owned by Unity. It was acquired and integrated on Uni
 The big problem for me here is that it feels very "shady". Using it to version code made on Unreal Engine feels like mixing everything up. Also there is not free pricing tear, it is always "pay as you go" with first 3 members and N GB usage free. The website feels kinda weird to navigate, taking me a considerable amount of time to find more details on the pricing model and the free options.
 
 To be honest, I would definitely give it a good consideration if I was using Unity to work on my projects. But due to "vibe" issues, I prefer will give preference to Perforce's Helix Core.
+
+> I actually changed my mind about this last statement: "[Unreal Stack: Changing my mind about Perforce]({% post_url 2024-06-13-changing-my-mind-about-perforce %})"
 
 ## Remote Collaboration Tools
 
