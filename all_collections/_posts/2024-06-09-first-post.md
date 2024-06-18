@@ -2,8 +2,6 @@
 layout: post
 title: First Post!
 created-at: 2024-06-09
-modified-at: 
-categories: []
 ---
 
 This is the first post of my DevLog. The idea here is to document the leaning process and my thoughts on projects I'm working on.

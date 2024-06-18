@@ -132,6 +132,8 @@ main {
   font-style: italic;
   font-size: 1.4rem;
   line-height: 130%;
+  display: block;
+  width: 100%;
 }
 .articles .article:hover {
   transform: scale(1.05);
@@ -145,6 +147,7 @@ main {
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
+  padding: 1em 0em 0em;
 }
 .articles .article .categories .category {
   margin: 0 0.5rem 0.3rem 0;
