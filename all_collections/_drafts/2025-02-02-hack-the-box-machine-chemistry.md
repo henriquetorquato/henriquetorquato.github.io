@@ -359,3 +359,32 @@ But wasn't able to make the exploit work.
 
 At this point I have given up, and went to take a look at the writeup again...
 
+This was kinda weird, he mentioned the use of
+> ss -lvn
+
+this will display open TCP ports in numeric format, specially numeric format since without the `-n` flag, port `8080` would be displayed as `http-alt`.
+
+This command shows that there is a non exposed HTTP page running on port `8080`:
+```
+> ss -lnt
+State        Recv-Q       Send-Q             Local Address:Port              Peer Address:Port       Process       
+LISTEN       0            128                    127.0.0.1:8080                   0.0.0.0:*                        
+LISTEN       0            4096               127.0.0.53%lo:53                     0.0.0.0:*                        
+LISTEN       0            128                      0.0.0.0:22                     0.0.0.0:*                        
+LISTEN       0            5                        0.0.0.0:3333                   0.0.0.0:*                        
+LISTEN       0            128                      0.0.0.0:5000                   0.0.0.0:*                        
+LISTEN       0            128                         [::]:22                        [::]:* 
+```
+
+and to access it outside of the SSH connection, we need to port forward it.
+
+> ssh -L 8080:localhost:8080 rosa@10.10.11.38
+
+I can now navigate to `localhost:8080` and see the landing page:
+
+![Port 8080 landing page](/docs/assets/2025-02/htb-chemistry-5.png)
+
+The only option that seems to work there is the "List Services", but it doesn't seem to have nothing different from what I could find connecting directly to the machine through SSH.
+
+
+
