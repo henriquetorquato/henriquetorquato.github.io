@@ -196,10 +196,14 @@ main {
 }
 
 .content code {
-  padding: 3px 5px;
   color: var(--white-2);
   white-space: pre;
   background: var(--gray-3);
+}
+
+/* If the highlighter class is directly on the code tag, it means it's a single quote code block, and then the padding should apply  */
+.content code.highlighter-rouge {
+  padding: 3px 5px;
 }
 
 @media (prefers-color-scheme: light) {
