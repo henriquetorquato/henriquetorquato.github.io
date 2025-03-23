@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Hack The Box CTF 2025: Tales from Eldoria - Pwn - Quack Quack'
-created-at: 2025-03-21
+created-at: 2025-03-22
 categories: ["Hack The Box", "WriteUp", "Cybersecurity", "Tales from Eldoria", "CTF"]
 ---
 
