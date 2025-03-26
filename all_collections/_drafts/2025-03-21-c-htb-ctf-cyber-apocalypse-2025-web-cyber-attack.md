@@ -7,7 +7,7 @@ categories: ["Hack The Box", "WriteUp", "Cybersecurity", "Tales from Eldoria", "
 
 |Category|Name|Difficulty|Status|
 |:---:|:---:|:---:|:---:|
-|Web|Cyber Attack|Easy||
+|Web|Cyber Attack|Easy|Not Completed ❌|
 
 > Welcome, Brave Hero of Eldoria. You’ve entered a domain controlled by the forces of Malakar, the Dark Ruler of Eldoria. This is no place for the faint of heart. Proceed with caution: The systems here are heavily guarded, and one misstep could alert Malakar’s sentinels. But if you’re brave—or foolish—enough to exploit these defenses, you might just find a way to weaken his hold on this world. Choose your path carefully: Your actions here could bring hope to Eldoria… or doom us all. The shadows are watching. Make your move.
 
@@ -115,8 +115,6 @@ If I try:
 
 I get HTTP 403 (Forbidden) back.
 
-> I made the mistake of looking into the apache configurations when first trying to run this challenge locally. After starting the docker container I was receiving an Unauthorized error when trying to access the page. I thought there was something else I had to configure, so I checked there to see.
-> When looking into it, I saw that the `/attack-ip` route is blocked for any request outside `localhost`.
+## Failing at it
 
-
-http://94.237.54.176:47727/?error=';const isLocalIP = (ip) => true;'
+Honestly, I have no idea on how to proceed with ths one.

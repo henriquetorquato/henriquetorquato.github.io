@@ -7,7 +7,7 @@ categories: ["Hack The Box", "WriteUp", "Cybersecurity", "Tales from Eldoria", "
 
 |Category|Name|Difficulty|Status|
 |:---:|:---:|:---:|:---:|
-|Pwn|Quack Quack|Very Easy||
+|Pwn|Quack Quack|Very Easy|Not Completed ❌|
 
 > On the quest to reclaim the Dragon's Heart, the wicked Lord Malakar has cursed the villagers, turning them into ducks! Join Sir Alaric in finding a way to defeat them without causing harm. Quack Quack, it's time to face the Duck!
 
@@ -59,3 +59,7 @@ r.stream()
 
 r.sendline(b'Quack Quack test')
 ```
+
+## Failing at it
+
+I could see that I needed to do an buffer overflow with the input to force calling the `duck_attack` method. But due to my inexperience with such attacks, I decided to move on to other challenges to not spend the next couple of days learning about this.
