@@ -2,6 +2,7 @@
 layout: post
 title: 'Hack The Box CTF 2025: Tales from Eldoria - Web - Eldoria Panel'
 created-at: 2025-03-24
+modified-at: 2025-03-27
 categories: ["Hack The Box", "WriteUp", "Cybersecurity", "Tales from Eldoria", "CTF"]
 ---
 
@@ -209,3 +210,31 @@ $adminApiKeyMiddleware = function (Request $request, $handler) use ($app) {
 I couldn't find a way steal that information though. I would need find a way to either redirect the `/api/user` result or the result of the `/dashboard` access when the bot accesses my website. But due to the different domains, I wasn't able to authenticate on an `iframe` or through `fetch`.
 
 I also tried to figure a way to directly modify the template settings POSTing to the route on click, but no success at that either.
+
+## Solution
+### XSS and stealing the admin token
+
+Based on the [official writeup](https://github.com/hackthebox/cyber-apocalypse-2025/tree/main/web/web_eldoria_panel) I had the right idea, but the implementations of the exploit itself was not that simple.
+
+It sends a URL to a page that executes a form POST to `/api/updateStatus`, taking advantage of a unchecked JSON validation on the server side.
+
+Example (unfinished):
+
+```html
+<html>
+  <body>
+	<form action="http://127.0.0.1:80/api/updateStatus" method="POST" enctype="text/plain">
+		<input type="hidden" name='{{"status": "XSS","foo' value='":"b"}}' />
+	</form>
+	<script>document.forms[0].submit();</script>
+  </body>
+</html>
+```
+
+Because the user status is added to the session and later printed out on the dashboard, this then becomes a XSS vector.
+
+When printing the status sourced from the user, the content is parse through a `DOMPurify.sanitize` call, and set to `innerHTML`, which is a mitigation tactic for XSS.
+
+I believe this attack to be a bit sophisticated since it relies on [a bypass of these tactics](https://mizu.re/post/exploring-the-dompurify-library-bypasses-and-fixes), and I myself probably wouldn't be able to solve this without prior knowledge of it.
+
+Now with access to the admin token, we can authenticate a request updating the app_settings to set the template to our own path, which is essentially a RFI (Remote File Inclusion).
