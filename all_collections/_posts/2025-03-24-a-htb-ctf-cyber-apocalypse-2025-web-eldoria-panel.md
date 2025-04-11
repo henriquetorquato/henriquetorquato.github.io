@@ -218,20 +218,7 @@ Based on the [official writeup](https://github.com/hackthebox/cyber-apocalypse-2
 
 It sends a URL to a page that executes a form POST to `/api/updateStatus`, taking advantage of a unchecked JSON validation on the server side.
 
-Example (unfinished):
-
-```html
-<html>
-  <body>
-	<form action="http://127.0.0.1:80/api/updateStatus" method="POST" enctype="text/plain">
-		<input type="hidden" name='{{"status": "XSS","foo' value='":"b"}}' />
-	</form>
-	<script>document.forms[0].submit();</script>
-  </body>
-</html>
-```
-
-Because the user status is added to the session and later printed out on the dashboard, this then becomes a XSS vector.
+Because the user status is added to the session and later printed out on the dashboard, this would then becomes a XSS vector.
 
 When printing the status sourced from the user, the content is parse through a `DOMPurify.sanitize` call, and set to `innerHTML`, which is a mitigation tactic for XSS.
 
