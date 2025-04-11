@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% include head.html %}
+  <body>
+    <main>
+      {% include header.html %}
+      {% include bio.html %}
+
+      <section class="articles">
+        {% for post in site.posts %}
+          {% include components/landing_page/post_link.html post=post %}
+        {%endfor%}
+      </section>
+      {% include footer.html %}
+    </main>
+    {% include category-modal.html%}
+  </body>
+</html>

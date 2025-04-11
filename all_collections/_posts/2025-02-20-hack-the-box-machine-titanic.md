@@ -3,9 +3,8 @@ layout: post
 title: 'Hack The Box - Machine Write-Up: Titanic'
 created-at: 2025-02-20
 categories: ["Hack The Box", "WriteUp", "Cybersecurity"]
+image: /docs/assets/2025-02/htb-titanic-0.png
 ---
-
-![Machine Info Card](/docs/assets/2025-02/htb-titanic-0.png)
 
 ## Enumeration and Analysis
 

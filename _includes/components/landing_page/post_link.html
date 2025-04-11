@@ -1,0 +1,19 @@
+<article class="article">
+    {% if post.image %}
+        <img src="{{post.image}}">
+    {% endif %}
+    <a href="{{site.baseurl}}{{post.url}}">
+        <div class="article-title">
+            {{ post.title }}
+            <small class="date">{{ post.date | date_to_string }}</small>
+
+            {% if post.categories.size > 0 %}
+                <div class="categories">
+                {% for c in post.categories %}
+                    <a href="#!" data-base-url="{{site.baseurl}}" class="category">{{ c }}</a>
+                {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </a>
+</article>

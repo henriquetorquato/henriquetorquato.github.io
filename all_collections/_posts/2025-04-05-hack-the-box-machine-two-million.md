@@ -3,9 +3,8 @@ layout: post
 title: 'Hack The Box - Machine Write-Up: TwoMillion'
 created-at: 2025-04-05
 categories: ["Hack The Box", "WriteUp", "Cybersecurity"]
+image: /docs/assets/2025-04/htb-2million-0.png
 ---
-
-![Machine Info Card](/docs/assets/2025-04/htb-2million-0.png)
 
 ## Enumeration and Analysis
 

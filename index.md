@@ -1,4 +1,4 @@
 ---
 title: Blog
-layout: blog
+layout: landing_page/blog
 ---

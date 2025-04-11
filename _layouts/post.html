@@ -25,7 +25,12 @@
             {% endfor %}
           </div>
         </div>
-        <div class="content">{{content}}</div>
+        <div class="content">
+          <p>
+            <img src="{{ page.image }}" alt="">
+          </p>  
+          {{content}}
+        </div>
       </section>
       {% include footer.html %}
     </main>

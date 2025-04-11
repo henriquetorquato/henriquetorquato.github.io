@@ -3,9 +3,8 @@ layout: post
 title: 'Hack The Box - Machine Write-Up: Chemistry'
 created-at: 2025-02-04
 categories: ["Hack The Box", "WriteUp", "Cybersecurity"]
+image: /docs/assets/2025-02/htb-chemistry-0.png
 ---
-
-![Machine Info Card](/docs/assets/2025-02/htb-chemistry-0.png)
 
 ## Enumeration and Analysis
 
