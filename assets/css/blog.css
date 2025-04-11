@@ -182,12 +182,6 @@ main {
     flex-direction: column;
     gap: 3rem;
   }
-  header #dark-mode-toggle {
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
-    align-self: flex-end;
-  }
   header .site-title {
     font-size: 3rem;
   }
