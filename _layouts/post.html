@@ -10,9 +10,8 @@
           <div class="article-data">
             <p>
               Posted on: <small class="date">{{ page.created-at | date_to_string }}</small>
-              |
               {% if page.modified-at %}
-                Edited on: <small class="date">{{ page.modified-at | date_to_string }}</small>
+                | Edited on: <small class="date">{{ page.modified-at | date_to_string }}</small>
               {% endif %}
             </p>
           </div>
