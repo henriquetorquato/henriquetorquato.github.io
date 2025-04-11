@@ -8,7 +8,7 @@ console.log(categories)
 window.onload = function () {
   document.querySelectorAll(".category").forEach((category) => {
     category.addEventListener("click", function (e) {
-      const posts = categories[e.target.innerText.replace(" ","_")];
+      const posts = categories[e.target.innerText.replaceAll(" ","_")];
       let html = ``
       posts.forEach(post=>{
         html += `
