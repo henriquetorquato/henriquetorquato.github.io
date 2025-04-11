@@ -1,8 +1,8 @@
-<article class="article">
-    {% if post.image %}
-        <img src="{{post.image}}">
-    {% endif %}
+<article class="article">    
     <a href="{{site.baseurl}}{{post.url}}">
+        {% if post.image %}
+            <img src="{{post.image}}">
+        {% endif %}
         <div class="article-title">
             {{ post.title }}
             <small class="date">{{ post.date | date_to_string }}</small>
