@@ -9,15 +9,12 @@
           <h2 class="article-title">{{ page.title }}</h2>
           <div class="article-data">
             <p>
-              Posted on: 
-              <small class="date">{{ page.created-at | date_to_string }}</small>
+              Posted on: <small class="date">{{ page.created-at | date_to_string }}</small>
+              |
+              {% if page.modified-at %}
+                Edited on: <small class="date">{{ page.modified-at | date_to_string }}</small>
+              {% endif %}
             </p>
-            {% if page.modified-at %}
-            <p>
-              Edited on: 
-              <small class="date">{{ page.modified-at | date_to_string }}</small>
-            </p>
-            {% endif %}
           </div>
           <div class="categories">
             {% for c in page.categories %}
