@@ -1,0 +1,9 @@
+tabs:
+  - title: '/home'
+    path: '/'
+
+  - title: '/CTFs'
+    path: '/ctfs.html'
+
+  - title: '/about'
+    path: '/about.html'

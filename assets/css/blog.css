@@ -9,9 +9,11 @@
   -moz-window-dragging: none;
   -webkit-tap-highlight-color: transparent;
 }
+
 * img {
   max-width: 100%;
 }
+
 html,
 body {
   color: var(--white-2);
@@ -20,23 +22,50 @@ body {
   line-height: 2rem;
   background-color: var(--gray-5);
 }
+
 header {
   padding: 2rem 0 4rem 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
+
 header .site-title {
   font-size: 4rem;
   font-weight: bolder;
   line-height: 110%;
   color: var(--white-1);
 }
+
 header .site-description {
   font-style: italic;
 }
+
+nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+}
+
+nav li {
+  padding-right: 1rem;
+}
+
+nav li.active > a {
+  color: var(--white-1);
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--white-2);
+}
+
 main {
   margin: 0 auto;
   max-width: 650px;

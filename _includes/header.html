@@ -4,4 +4,11 @@
     <br>
     <p class="site-description">{{ site.description }}</p>
   </div>
+  <!-- <nav>
+    <ul>
+      {% for item in site.data.navigation.tabs %}
+         <li{% if page.url == item.path %} class="active" {% endif %}><a href="{{ item.path }}">{{ item.title }}</a></li>
+      {% endfor %}
+   </ul>
+  </nav> -->
 </header>

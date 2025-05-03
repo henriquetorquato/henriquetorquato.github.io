@@ -50,6 +50,9 @@ header {
   justify-content: space-between;
   gap: 1rem;
 }
+nav {
+  display: none;
+}
 .site-title {
   font-size: 1.4rem;
   font-weight: bolder;
