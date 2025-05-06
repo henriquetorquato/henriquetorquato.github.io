@@ -233,7 +233,7 @@ So this is a very fast `hashcat` search:
 55c82b1ccd55ab219b3b109b07d5061d:slowmotionapocalypse
 ```
 
-This has match the user `tobias`. Checking for password reuse on SSH, we are in 😎.
+This hash match the user `tobias`. Checking for password reuse on SSH, we are in 😎.
 
 ```
 tobias@nocturnal:~$ cat user.txt 
@@ -243,3 +243,69 @@ tobias@nocturnal:~$ cat user.txt
 And we have the user flag.
 
 ## Privilege escalation
+
+Checking for commands that have sudo available, there are none:
+
+```
+tobias@nocturnal:~$ sudo -l
+[sudo] password for tobias: 
+Sorry, user tobias may not run sudo on nocturnal.
+```
+
+Checking connected sockets, there are some interesting open ports:
+
+```
+tobias@nocturnal:~$  ss -lnt
+State                 Recv-Q                Send-Q                               Local Address:Port                                  Peer Address:Port
+LISTEN                0                     4096                                     127.0.0.1:8080                                       0.0.0.0:*
+LISTEN                0                     511                                        0.0.0.0:80                                         0.0.0.0:*
+LISTEN                0                     5                                          0.0.0.0:8081                                       0.0.0.0:*
+LISTEN                0                     4096                                 127.0.0.53%lo:53                                         0.0.0.0:*
+LISTEN                0                     128                                        0.0.0.0:22                                         0.0.0.0:*
+LISTEN                0                     10                                       127.0.0.1:25                                         0.0.0.0:*
+LISTEN                0                     70                                       127.0.0.1:33060                                      0.0.0.0:*
+LISTEN                0                     151                                      127.0.0.1:3306                                       0.0.0.0:*
+LISTEN                0                     10                                       127.0.0.1:587                                        0.0.0.0:*
+LISTEN                0                     128                                           [::]:22                                            [::]:*
+```
+
+Port `80` is the `nocturnal.htb` website we just came from. I was unable to connect to `8081`:
+
+```
+tobias@nocturnal:~$ curl 0.0.0.0:8081
+curl: (7) Failed to connect to 0.0.0.0 port 8081: Connection refused
+```
+
+But checking port `8080`, it looks like there is a available `ISPConfig` page:
+
+```
+tobias@nocturnal:~$ wget 127.0.0.1:8080
+...
+Saving to: ‘index.html’
+...
+
+tobias@nocturnal:~$ cat index.html 
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8' />
+
+  <title>ISPConfig</title>
+
+  <meta name='viewport' content='width=device-width, user-scalable=yes'>
+  <meta name='description' lang='en' content='' />
+  <meta name='keywords' lang='en' content='' />
+
+ <link rel='apple-touch-icon' sizes='180x180' href='/themes/default/assets/favicon/apple-touch-icon.png'>
+ <link rel='icon' type='image/png' sizes='32x32' href='/themes/default/assets/favicon/favicon-32x32.png'>
+...
+```
+
+Port `8080` is not accessible from outside the machine, so I had to setup a SSH port forwarding:
+
+```
+> ssh -L 9090:localhost:8080 tobias@nocturnal.htb
+```
+
+![ISP Config page](/docs/assets/2025-05/htb-nocturnal-5.png)
+
